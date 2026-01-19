@@ -24,6 +24,13 @@
             text-align: center;
         }
 
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
         .toggle-switch {
             position: relative;
             width: 60px;
@@ -32,6 +39,7 @@
             border-radius: 15px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin: 0 auto;
         }
 
         .toggle-switch.active {
@@ -63,6 +71,7 @@
 </head>
 <body>
     <div class="toggle-container">
+        <h1 class="title">Test</h1>
         <div class="toggle-switch" id="toggle" onclick="toggle()">
             <div class="toggle-knob"></div>
         </div>
