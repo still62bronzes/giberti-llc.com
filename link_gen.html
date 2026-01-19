@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #ffffff;
+        }
+        
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .generate-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .generate-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .open-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .open-btn:hover {
+            background-color: #1e7e34;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .generated-link {
+            word-break: break-all;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Link Generator</h2>
+        
+        <input 
+            type="text" 
+            id="urlInput" 
+            placeholder="Enter URL (e.g., https://example.com)"
+        >
+        
+        <button class="generate-btn" onclick="generateLink()">
+            Generate Link
+        </button>
+        
+        <div class="result" id="result">
+            <p><strong>Generated Link:</strong></p>
+            <p class="generated-link" id="generatedLink"></p>
+            <button class="open-btn" onclick="openLink()">
+                Open in New Tab
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentUrl = '';
+
+        function generateLink() {
+            const input = document.getElementById('urlInput').value.trim();
+            
+            if (!input) {
+                alert('Please enter a URL');
+                return;
+            }
+            
+            // Add https:// if no protocol is specified
+            if (!input.startsWith('http://') && !input.startsWith('https://')) {
+                currentUrl = 'https://' + input;
+            } else {
+                currentUrl = input;
+            }
+            
+            // Display the result
+            document.getElementById('generatedLink').textContent = currentUrl;
+            document.getElementById('result').classList.add('show');
+        }
+
+        function openLink() {
+            if (currentUrl) {
+                window.open(currentUrl, '_blank');
+            }
+        }
+
+        // Allow pressing Enter to generate the link
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateLink();
+            }
+        });
+    </script>
+</body>
+</html>
