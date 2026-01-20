@@ -67,6 +67,32 @@
             font-size: 14px;
             color: #333;
         }
+
+        .url-param-container {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .param-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .param-display {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .param-display.not-set {
+            color: #e53935;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -76,6 +102,10 @@
             <div class="toggle-knob"></div>
         </div>
         <p class="status" id="status">OFF</p>
+        <div class="url-param-container">
+            <span class="param-label">refId:</span>
+            <span class="param-display" id="paramDisplay">Not Set</span>
+        </div>
     </div>
 
     <script>
@@ -90,6 +120,19 @@
             } else {
                 status.textContent = 'OFF';
             }
+        }
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const inputParam = urlParams.get('refId');
+        const paramDisplay = document.getElementById('paramDisplay');
+
+        if (inputParam) {
+            paramDisplay.textContent = inputParam;
+            paramDisplay.classList.remove('not-set');
+        } else {
+            paramDisplay.textContent = 'Not Set';
+            paramDisplay.classList.add('not-set');
         }
     </script>
 </body>
