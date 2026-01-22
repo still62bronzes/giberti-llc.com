@@ -126,9 +126,9 @@
             }
         }
 
-        function oniFrameLoad() {
+        window.addEventListener('load', () => {
             document.getElementById('debug_text').textContent = 'On Load';
-        }
+        });
 
         function webhook(enabled, refId) {
             if (refId == "Not Set") {
