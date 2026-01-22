@@ -148,8 +148,7 @@
                 const response = await fetch(url, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'refId': data.refId
+                    'Content-Type': 'application/json'
                 }
                 });
                 console.log('Webhook triggered:', response.status);
