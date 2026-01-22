@@ -125,9 +125,11 @@
             }
         }
 
-        function webhook(enabled, refId) {
+        function oniFrameLoad() {
             status.textContent = 'On Load';
+        }
 
+        function webhook(enabled, refId) {
             if (refId == "Not Set") {
                 // Jiggle refId text element or some other way of denoting that it needs to be set
                 // reset toggle to original state
