@@ -106,6 +106,7 @@
             <span class="param-label">refId:</span>
             <span class="param-display" id="paramDisplay">Not Set</span>
         </div>
+        <p class="status" id="debug_text">debug</p>
     </div>
 
     <script>
@@ -126,7 +127,7 @@
         }
 
         function oniFrameLoad() {
-            status.textContent = 'On Load';
+            document.getElementById('debug_text').textContent = 'On Load';
         }
 
         function webhook(enabled, refId) {
