@@ -122,20 +122,25 @@
         if (inputParam) {
             paramDisplay.textContent = inputParam;
             paramDisplay.classList.remove('not-set');
+            triggerWebhook(on_load_webhook_url, {
+                event: 'refId Set (Load)',
+                timestamp: new Date().toISOString(),
+                refId: inputParam
+            });
         } else {
             paramDisplay.textContent = 'Not Set';
             paramDisplay.classList.add('not-set');
         }
 
-        // On page load, trigger "On Load" webhook to get toggle value
-        window.addEventListener('load', () => {
-            document.getElementById('debug_text').textContent = 'On Load';
-            triggerWebhook(on_load_webhook_url, {
-                event: 'page_loaded',
-                timestamp: new Date().toISOString(),
-                refId: inputParam
-            });
-        });
+        // // On page load, trigger "On Load" webhook to get toggle value
+        // window.addEventListener('load', () => {
+        //     document.getElementById('debug_text').textContent = 'On Load';
+        //     triggerWebhook(on_load_webhook_url, {
+        //         event: 'page_loaded',
+        //         timestamp: new Date().toISOString(),
+        //         refId: inputParam
+        //     });
+        // });
 
         async function triggerWebhook(url, data) {
             try {
