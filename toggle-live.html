@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toggle Button</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .toggle-container {
+            text-align: center;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 auto;
+        }
+
+        .toggle-switch.active {
+            background-color: #4caf50;
+        }
+
+        .toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active .toggle-knob {
+            transform: translateX(30px);
+        }
+
+        .status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .url-param-container {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .param-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .param-display {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .param-display.not-set {
+            color: #e53935;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="toggle-container">
+        <h1 class="title">RipDrip-DM Model</h1>
+        <div class="toggle-switch" id="toggle" onclick="toggle()">
+            <div class="toggle-knob"></div>
+        </div>
+        <p class="status" id="status">OFF</p>
+        <div class="url-param-container">
+            <span class="param-label">refId:</span>
+            <span class="param-display" id="paramDisplay">Not Set</span>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const inputParam = urlParams.get('refId');
+        const paramDisplay = document.getElementById('paramDisplay');
+
+        if (inputParam) {
+            if (inputParam != 'null'){
+                paramDisplay.textContent = inputParam;
+                paramDisplay.classList.remove('not-set');
+                // triggerWebhook(on_load_webhook_url, {
+                //     event: 'refId Set (Load)',
+                //     timestamp: new Date().toISOString(),
+                //     refId: inputParam
+                // });
+            }
+        } else {
+            paramDisplay.textContent = 'Not Set';
+            paramDisplay.classList.add('not-set');
+        }
+
+        // // On page load, trigger "On Load" webhook to get toggle value
+        // window.addEventListener('load', () => {
+        //     document.getElementById('debug_text').textContent = 'On Load';
+        //     triggerWebhook(on_load_webhook_url, {
+        //         event: 'page_loaded',
+        //         timestamp: new Date().toISOString(),
+        //         refId: inputParam
+        //     });
+        // });
+
+        // async function triggerWebhook(url, data) {
+        //     try {
+        //         document.getElementById('debug_text').textContent = 'Sending Webhook';
+        //         const response = await fetch(url, {
+        //         method: 'GET',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         }
+        //         });
+        //         console.log('Webhook triggered:', response.status);
+        //     } catch (error) {
+        //         document.getElementById('debug_text').textContent = 'Errored out';
+        //         console.error('Webhook error:', error, "Data: ", data);
+        //     }
+        // }
+
+        function toggle() {
+            const toggleSwitch = document.getElementById('toggle');
+            const status = document.getElementById('status');
+            
+            toggleSwitch.classList.toggle('active');
+            
+            if (toggleSwitch.classList.contains('active')) {
+                status.textContent = 'ON';
+            } else {
+                status.textContent = 'OFF';
+            }
+        }
+
+
+        function webhook(enabled, refId) {
+            if (refId == "Not Set") {
+                // Jiggle refId text element or some other way of denoting that it needs to be set
+                // reset toggle to original state
+            }
+            else {
+                // Make webhook
+            }
+        }
+
+      
+    </script>
+</body>
+</html>
