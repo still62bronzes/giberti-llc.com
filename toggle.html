@@ -109,6 +109,9 @@
     </div>
 
     <script>
+        const on_load_webhook_url = ""
+        const on_toggle_webhook_url = ""
+
         function toggle() {
             const toggleSwitch = document.getElementById('toggle');
             const status = document.getElementById('status');
@@ -119,6 +122,18 @@
                 status.textContent = 'ON';
             } else {
                 status.textContent = 'OFF';
+            }
+        }
+
+        function webhook(enabled, refId) {
+            status.textContent = 'On Load';
+
+            if (refId == "Not Set") {
+                // Jiggle refId text element or some other way of denoting that it needs to be set
+                // reset toggle to original state
+            }
+            else {
+                // Make webhook
             }
         }
 
