@@ -149,8 +149,8 @@
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data.refId),
+                    'refId': data.refId
+                }
                 });
                 console.log('Webhook triggered:', response.status);
             } catch (error) {
