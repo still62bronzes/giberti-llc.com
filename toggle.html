@@ -110,8 +110,48 @@
     </div>
 
     <script>
-        const on_load_webhook_url = ""
+        const on_load_webhook_url = "http://localhost:5678/webhook/atomic-metabase-iframe-load-entrypoint"
         const on_toggle_webhook_url = ""
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const inputParam = urlParams.get('refId');
+        const paramDisplay = document.getElementById('paramDisplay');
+
+        if (inputParam) {
+            paramDisplay.textContent = inputParam;
+            paramDisplay.classList.remove('not-set');
+        } else {
+            paramDisplay.textContent = 'Not Set';
+            paramDisplay.classList.add('not-set');
+        }
+
+        // On page load, trigger "On Load" webhook to get toggle value
+        window.addEventListener('load', () => {
+            document.getElementById('debug_text').textContent = 'On Load';
+            triggerWebhook(on_load_webhook_url, {
+                event: 'page_loaded',
+                timestamp: new Date().toISOString(),
+                refId: inputParam
+            });
+        });
+
+        async function triggerWebhook(url, data) {
+            try {
+                document.getElementById('debug_text').textContent = 'Sending Webhook';
+                const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data.refId),
+                });
+                console.log('Webhook triggered:', response.status);
+            } catch (error) {
+                document.getElementById('debug_text').textContent = 'Errored out';
+                console.error('Webhook error:', error, "Data: ", data);
+            }
+        }
 
         function toggle() {
             const toggleSwitch = document.getElementById('toggle');
@@ -126,9 +166,6 @@
             }
         }
 
-        window.addEventListener('load', () => {
-            document.getElementById('debug_text').textContent = 'On Load';
-        });
 
         function webhook(enabled, refId) {
             if (refId == "Not Set") {
@@ -140,18 +177,7 @@
             }
         }
 
-        // Get URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const inputParam = urlParams.get('refId');
-        const paramDisplay = document.getElementById('paramDisplay');
-
-        if (inputParam) {
-            paramDisplay.textContent = inputParam;
-            paramDisplay.classList.remove('not-set');
-        } else {
-            paramDisplay.textContent = 'Not Set';
-            paramDisplay.classList.add('not-set');
-        }
+      
     </script>
 </body>
 </html>
