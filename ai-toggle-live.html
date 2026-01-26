@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toggle Button</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .toggle-container {
+            text-align: center;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 auto;
+        }
+
+        .toggle-switch.active {
+            background-color: #4caf50;
+        }
+
+        .toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active .toggle-knob {
+            transform: translateX(30px);
+        }
+
+        .statusDisplay {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .url-param-container {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .param-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .param-display {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .param-display.not-set {
+            color: #e53935;
+            font-weight: bold;
+        }
+
+        @keyframes jiggle {
+            0% { transform: translateX(0); }
+            10% { transform: translateX(-5px); }
+            20% { transform: translateX(5px); }
+            30% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            50% { transform: translateX(-5px); }
+            60% { transform: translateX(5px); }
+            70% { transform: translateX(-3px); }
+            80% { transform: translateX(3px); }
+            90% { transform: translateX(-1px); }
+            100% { transform: translateX(0); }
+        }
+
+        .toggle-switch.jiggle {
+            animation: jiggle 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="toggle-container">
+        <h1 class="title">RipDrip-DM Model</h1>
+        <div class="toggle-switch" id="toggle" onclick="toggle(false)">
+            <div class="toggle-knob"></div>
+        </div>
+        <p class="statusDisplay" id="statusDisplay">OFF</p>
+        <div class="url-param-container">
+            <span class="param-label">refId:</span>
+            <span class="param-display" id="refIdDisplay">Not Set</span>
+        </div>
+    </div>
+
+    <script>
+        const iFrame_ID = "ai-toggle";
+        
+        // #region On iFrame Load
+            // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const refId_input = urlParams.get('refId');
+        const refIdDisplay = document.getElementById('refIdDisplay');
+
+
+            // Update text elements with refId and make webhook for toggle variables
+        if (refId_input && refId_input != 'null') { // Only if the refId is actually set (Metabase filter)
+                refIdDisplay.textContent = refId_input;
+                refIdDisplay.classList.remove('not-set');
+                
+        } else {
+            refIdDisplay.textContent = 'Not Set';
+            refIdDisplay.classList.add('not-set');
+        }
+        // #endregion
+
+        // #region On Toggle Click
+        function toggle(skip_webhook) {
+            const toggleSwitch = document.getElementById('toggle');
+            const statusDisplay = document.getElementById('statusDisplay');
+            
+            toggleSwitch.classList.toggle('active');
+            const toggle_status = toggleSwitch.classList.contains('active');
+
+
+            if (toggle_status) {
+                statusDisplay.textContent = 'ON';
+            } else {
+                statusDisplay.textContent = 'OFF';
+            }
+
+            if (!skip_webhook){
+                pre_webhook(toggle_status, refId_input, iFrame_ID, toggleSwitch)
+            }
+        }
+
+            // Double check that refId is still set before sending to webhook
+        function pre_webhook(newValue, refId, iFrame, toggleSwitch) {
+            if (refIdDisplay.textContent == "Not Set") {
+                // Jiggle to alert user
+                toggleSwitch.classList.add('jiggle');
+                
+                setTimeout(() => {
+                    toggleSwitch.classList.remove('jiggle');
+                }, 500);
+
+                // reset toggle to original state
+                toggle(true)
+            }
+            else {
+                const webhook_response = triggerWebhook(on_toggle_webhook_url, {
+                    'refId': refId,
+                    'iFrame': iFrame,
+                    'newValue': newValue
+                });
+            }
+        }
+        // #endregion
+      
+        // #region Reused Functions
+        async function triggerWebhook(url, data) {
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(function(response) {
+                    return response.json();
+                });
+
+                return response;
+            } catch (error) {
+                document.getElementById('debug_text').textContent = 'Errored out';
+                console.error('Webhook error:', error, "Data: ", data);
+            }
+        }
+
+        function parseWebhookResponse(response) {
+            console.log('Received response... ', response);
+            //TODO: Do work here once I receive the schema
+        }
+        // #endregion
+
+    </script>
+</body>
+</html>
