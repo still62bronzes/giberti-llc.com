@@ -16,7 +16,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f0f0f0;
+            background-color: #071722;
             font-family: Arial, sans-serif;
         }
 
@@ -27,7 +27,7 @@
         .title {
             font-size: 48px;
             font-weight: bold;
-            color: #333;
+            color: white;
             margin-bottom: 30px;
         }
 
@@ -65,7 +65,7 @@
         .statusDisplay {
             margin-top: 15px;
             font-size: 14px;
-            color: #333;
+            color: white;
         }
 
         .url-param-container {
@@ -73,9 +73,14 @@
             padding: 10px 20px;
             background-color: #e0e0e0;
             border-radius: 5px;
-            display: inline-flex;
+            display: none;
             align-items: center;
+            justify-content: center;
             gap: 10px;
+        }
+
+        .url-param-container.visible {
+            display: inline-flex;
         }
 
         .param-label {
@@ -89,8 +94,9 @@
             color: #333;
         }
 
-        .param-display.not-set {
-            color: #e53935;
+        .checkmark {
+            color: #4caf50;
+            font-size: 20px;
             font-weight: bold;
         }
 
@@ -115,46 +121,55 @@
 </head>
 <body>
     <div class="toggle-container">
-        <h1 class="title">RipDrip-DM Model</h1>
+        <h1 class="title">RipDrip-DM</h1>
         <div class="toggle-switch" id="toggle" onclick="toggle(false)">
             <div class="toggle-knob"></div>
         </div>
         <p class="statusDisplay" id="statusDisplay">OFF</p>
-        <div class="url-param-container">
+        <div class="url-param-container" id="refIdContainer">
             <span class="param-label">refId:</span>
-            <span class="param-display" id="refIdDisplay">Not Set</span>
+            <span class="checkmark">✓</span>
         </div>
     </div>
 
     <script>
+        const on_load_webhook_url_LOCAL = "http://localhost:5678/webhook/atomic-metabase-iframe-load-entrypoint";
+        const on_toggle_webhook_url_LOCAL = "http://localhost:5678/webhook/atomic-metabase-iframe-toggle-entrypoint";
         const iFrame_ID = "ai-toggle";
         
+
         // #region On iFrame Load
             // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const refId_input = urlParams.get('refId');
-        const refIdDisplay = document.getElementById('refIdDisplay');
+        const refIdContainer = document.getElementById('refIdContainer');
 
+        const toggleSwitch = document.getElementById('toggle');
+        var toggle_status = toggleSwitch.classList.contains('active');
+        var refId_Set = false;
 
             // Update text elements with refId and make webhook for toggle variables
         if (refId_input && refId_input != 'null') { // Only if the refId is actually set (Metabase filter)
-                refIdDisplay.textContent = refId_input;
-                refIdDisplay.classList.remove('not-set');
+            refId_Set = true;
+            refIdContainer.classList.add('visible');
+            
+            ;(async () => {
+                const webhook_response = await pageLoadWebhook()
+                parseWebhookResponse(webhook_response, { });
+            })()
                 
         } else {
-            refIdDisplay.textContent = 'Not Set';
-            refIdDisplay.classList.add('not-set');
+            refId_Set = false;
+            refIdContainer.classList.remove('visible');
         }
         // #endregion
 
         // #region On Toggle Click
         function toggle(skip_webhook) {
-            const toggleSwitch = document.getElementById('toggle');
             const statusDisplay = document.getElementById('statusDisplay');
             
             toggleSwitch.classList.toggle('active');
-            const toggle_status = toggleSwitch.classList.contains('active');
-
+            toggle_status = toggleSwitch.classList.contains('active');
 
             if (toggle_status) {
                 statusDisplay.textContent = 'ON';
@@ -163,14 +178,21 @@
             }
 
             if (!skip_webhook){
-                pre_webhook(toggle_status, refId_input, iFrame_ID, toggleSwitch)
+                // Variable value is opposite of toggle state
+                pre_webhook(!toggle_status);
             }
         }
 
-            // Double check that refId is still set before sending to webhook
-        function pre_webhook(newValue, refId, iFrame, toggleSwitch) {
-            if (refIdDisplay.textContent == "Not Set") {
-                // Jiggle to alert user
+            // Double check that refId is set before sending to webhook
+        function pre_webhook(newValue) {
+            if (refId_Set) {
+                ;(async () => {
+                    const webhook_response = await toggleWebhook(newValue)
+                    parseWebhookResponse(webhook_response);
+                })()
+            }
+            else {
+                // Jiggle to alert user that toggle is disabled without refId
                 toggleSwitch.classList.add('jiggle');
                 
                 setTimeout(() => {
@@ -179,13 +201,6 @@
 
                 // reset toggle to original state
                 toggle(true)
-            }
-            else {
-                const webhook_response = triggerWebhook(on_toggle_webhook_url, {
-                    'refId': refId,
-                    'iFrame': iFrame,
-                    'newValue': newValue
-                });
             }
         }
         // #endregion
@@ -206,14 +221,43 @@
 
                 return response;
             } catch (error) {
-                document.getElementById('debug_text').textContent = 'Errored out';
                 console.error('Webhook error:', error, "Data: ", data);
             }
         }
 
         function parseWebhookResponse(response) {
             console.log('Received response... ', response);
-            //TODO: Do work here once I receive the schema
+            
+            // Response from page load webhook
+            if ((Object.hasOwn(response, "turnOffDmAi"))) {
+                console.log("Status ", toggle_status, response.turnOffDmAi)
+                if (toggle_status == response.turnOffDmAi) {
+                    // If there isn't a mismatch, change toggle state (false in AWS means AI is enabled)
+                    toggle(true)
+                }
+            }
+
+            // Response from toggle (if needed)
+        }
+        // #endregion
+
+         // #region Webhook Async Functions
+        const pageLoadWebhook = async () => {
+            const response = await triggerWebhook(on_load_webhook_url, {
+                'refId': refId_input
+            });
+
+            return response;
+        }
+        
+        const toggleWebhook = async (newValue) => {
+            const response = await triggerWebhook(on_toggle_webhook_url, {
+                'refId': refId_input,
+                'iFrame': iFrame_ID,
+                'newValue': newValue
+            }); // False variable in AWS means AI is enabled
+
+            return response;
         }
         // #endregion
 
